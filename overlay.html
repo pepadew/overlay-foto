@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Streamer.bot Overlay - Variant 2 (Snelle Actie)</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            background: transparent;
+            font-family: sans-serif;
+        }
+
+        /* --- DISCORD 3D LOGO --- */
+        #discord-logo {
+            position: absolute;
+            top: 800px;  
+            left: 1520px; 
+            width: 130px;
+            height: 130px;
+            object-fit: contain; 
+            opacity: 0;
+            transform: scale(0) translateZ(0);
+            will-change: transform, opacity, filter;
+            backface-visibility: hidden;
+            transition: opacity 0.5s, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        #discord-logo.show {
+            opacity: 1;
+            transform: scale(1) translateZ(0);
+            animation: blackHolePulse 2s infinite ease-in-out;
+        }
+
+        @keyframes blackHolePulse {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(114, 137, 218, 0.6)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 35px rgba(114, 137, 218, 0.9)); transform: scale(1.08); }
+        }
+
+        /* --- NOTIFICATIE BADGE --- */
+        #badge-icon {
+            position: absolute;
+            top: 780px;   
+            left: 1570px;  
+            width: 90px;  
+            height: 90px; 
+            object-fit: contain;
+            opacity: 0;
+            transform: scale(0) translateZ(0);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            z-index: 15;
+        }
+
+        #badge-icon.pop {
+            opacity: 1;
+            animation: singleJump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes singleJump {
+            0% { transform: scale(0) translateZ(0); }
+            60% { transform: scale(1.25) translateZ(0); }
+            100% { transform: scale(1) translateZ(0); }
+        }
+
+        /* --- CONTAINER DIENT ALS SPRONG-AS --- */
+        #photo-container {
+            position: absolute;
+            left: 300px; 
+            top: 324px;  
+            width: 768px;  
+            height: 432px;
+            will-change: left, top;
+            z-index: 5;
+        }
+
+        /* --- WRAPPER VOOR DE SCHAAL --- */
+        #photo-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            pointer-events: none;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            transform: scale(2.2);
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #photo-wrapper.show-wrapper {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* --- DE FOTO & ROSE METALLIC BORDER --- */
+        #captured-photo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            border: 6px solid transparent;
+            border-image: linear-gradient(135deg, #ffb6c1, #e75480, #c71585, #ffb6c1) 1;
+            border-radius: 12px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 182, 193, 0.4); 
+        }
+
+        /* --- EXTRA LOGO BINNEN HET KADER --- */
+        #corner-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            opacity: 0;
+            transform: scale(0) rotate(0deg) translateZ(0);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            z-index: 20;
+            transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #corner-logo.show {
+            opacity: 1;
+            transform: scale(1) rotate(15deg) translateZ(0);
+        }
+
+        /* --- RECHTSOMHOOG ANIMATIE --- */
+        @keyframes variant1JumpX {
+            0% { left: 300px; }
+            100% { left: 1201px; } 
+        }
+
+        @keyframes variant1JumpY {
+            0% {
+                top: 324px;  
+                animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000); 
+            }
+            35% {
+                top: -150px;   
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19); 
+            }
+            100% {
+                top: 649px;  
+            }
+        }
+
+        /* --- STRENG INZUIGEN ZONDER VERVAAG --- */
+        @keyframes variant1JumpScale {
+            0%, 75% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(0.001); 
+            }
+        }
+
+        /* Koppeling animaties */
+        #photo-container.jump {
+            animation: 
+                variant1JumpX 1.1s forwards linear,
+                variant1JumpY 1.1s forwards;
+        }
+
+        #photo-wrapper.funnel {
+            transition: none !important;
+            opacity: 1 !important; 
+            animation: variant1JumpScale 1.1s forwards ease-in;
+        }
+
+    </style>
+</head>
+<body>
+
+<img id="discord-logo" src="discord-3d.png" alt="Discord">
+<img id="badge-icon" src="badge.png" alt="Notification">
+
+<div id="photo-container">
+    <div id="photo-wrapper">
+        <img id="captured-photo" src="" alt="Screenshot">
+        <img id="corner-logo" src="roomyRnogmeerrose.jpg" alt="Corner Logo">
+    </div>
+</div>
+
+<script>
+    const ws = new WebSocket('ws://127.0.0.1:8080/');
+
+    ws.onopen = () => {
+        ws.send(JSON.stringify({
+            "request": "Subscribe",
+            "events": { "Custom": ["CodeEvent"], "Raw": ["Action"] },
+            "id": "Variant2CleanArc"
+        }));
+    };
+
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.event && (msg.event.type === "CodeEvent" || msg.event.type === "Action")) {
+            triggerEffect();
+        }
+    };
+
+    const container = document.getElementById('photo-container');
+    const wrapper = document.getElementById('photo-wrapper');
+    const photo = document.getElementById('captured-photo');
+    const logo = document.getElementById('discord-logo');
+    const badge = document.getElementById('badge-icon');
+    const cornerLogo = document.getElementById('corner-logo');
+
+    let isRunning = false;
+    let version = 0;
+
+    function triggerEffect() {
+        if (isRunning) return; 
+        isRunning = true;
+
+        // Harde reset: verberg de wrapper volledig zodat er niets te zien is
+        container.style.display = 'block'; 
+        container.classList.remove('jump');
+        wrapper.classList.remove('show-wrapper', 'funnel');
+        wrapper.style.display = 'none';   // <-- verborgen
+        logo.classList.remove('show');
+        badge.classList.remove('pop');
+        cornerLogo.classList.remove('show');
+        container.style.left = '';
+        container.style.top = '';
+        wrapper.style.opacity = ''; 
+        photo.src = '';                  // oude foto wissen
+        void container.offsetWidth;      // forceer reflow
+
+        // Wacht 200 ms zodat Streamer.bot de nieuwe screenshot kan wegschrijven
+        setTimeout(() => {
+            version++;
+            const url = 'screenshot.png?v=' + version + '&t=' + Date.now();
+
+            // Laad de afbeelding vers met fetch
+            fetch(url, { cache: 'no-store' })
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP error ' + response.status);
+                    return response.blob();
+                })
+                .then(blob => {
+                    const objectUrl = URL.createObjectURL(blob);
+                    photo.src = objectUrl;
+                    photo.onload = () => {
+                        URL.revokeObjectURL(objectUrl);
+                        photo.onload = null;
+                        // Nu pas tonen we de wrapper (zodra de foto geladen is)
+                        wrapper.style.display = 'block';
+                        wrapper.classList.add('show-wrapper');
+                    };
+                    photo.onerror = () => {
+                        // Fallback: directe src
+                        photo.src = url;
+                        wrapper.style.display = 'block';
+                        wrapper.classList.add('show-wrapper');
+                    };
+                })
+                .catch(() => {
+                    // Fallback bij fetch-fout
+                    photo.src = url;
+                    wrapper.style.display = 'block';
+                    wrapper.classList.add('show-wrapper');
+                });
+        }, 200);
+
+        // 1.2s: hoeklogo
+        setTimeout(() => {
+            cornerLogo.classList.add('show');
+        }, 1200);
+
+        // 2.2s: Discord-logo
+        setTimeout(() => {
+            logo.classList.add('show');
+        }, 2200);
+
+        // 3.8s: sprong
+        setTimeout(() => {
+            wrapper.style.opacity = '1'; 
+            wrapper.classList.remove('show-wrapper');
+            container.classList.add('jump');
+            wrapper.classList.add('funnel');
+        }, 3800);
+
+        // 4.9s: badge popt
+        setTimeout(() => {
+            badge.classList.add('pop');
+        }, 4900);
+
+        // 7.0s: reset
+        setTimeout(() => {
+            container.style.display = 'none';
+            logo.classList.remove('show');
+            badge.classList.remove('pop');
+
+            setTimeout(() => {
+                container.classList.remove('jump');
+                wrapper.classList.remove('show-wrapper', 'funnel');
+                cornerLogo.classList.remove('show');
+                container.style.left = '';
+                container.style.top = '';
+                wrapper.style.opacity = '';
+                wrapper.style.display = ''; // terug naar standaard (block)
+                photo.src = '';
+                isRunning = false; 
+            }, 100);
+        }, 7000);
+    }
+</script>
+
+</body>
+</html>
